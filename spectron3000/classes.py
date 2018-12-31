@@ -8,7 +8,6 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from plotly import graph_objs as go
-from lmfit.models import GaussianModel
 
 from spectron3000 import utils
 
@@ -128,11 +127,9 @@ class Catalog:
         :param spec_x: np.array corresponding to the frequencies to be evaluated
         :return: np.array containing y values
         """
-        model = GaussianModel()
         spec_y = np.zeros(len(spec_x))
         spec_x = np.array(spec_x)
         self.Q = utils.partition_function(self.state_energies, self.temperature)
-        self.column_density = float(self.column_density)
         I = utils.I2S(self.intensity, self.Q, self.frequency, self.state_energies, self.temperature)
         flux = utils.N2flux(
             self.column_density,
@@ -146,12 +143,7 @@ class Catalog:
         amplitudes = flux / np.sqrt(2. * np.pi**2. * dopp_freq)
         # Frequency, doppler shift in frequency, amplitude
         for c, w, a in zip(self.frequency, dopp_freq, amplitudes):
-            spec_y += model.eval(
-                x=spec_x,
-                center=c,
-                sigma=w,
-                amplitude=a
-            )
+            spec_y+=utils.gaussian(spec_x, a, c, w)
         return spec_y
 
     def to_table_format(self):
