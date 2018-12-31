@@ -5,8 +5,6 @@
     that are often used in spectroscopy.
 """
 
-import json
-
 import numpy as np
 from scipy import constants
 
@@ -258,3 +256,16 @@ def I2S(I, Q, frequency, E_upper, T):
     A = I * Q
     B = (4.16231e-5 * frequency * (boltzmann_factor(E_lower, T) - boltzmann_factor(E_upper, T)))
     return A / B
+
+
+def gaussian(x, amplitude, center, sigma):
+    """
+    Calculate the value of a normalized Gaussian distribution for a given
+    value of x and paramters.
+    :param x: np.array x values
+    :param amplitude: float value for amplitude
+    :param center: float value for the center of the distribution
+    :param sigma: float value for the width of the distribution
+    :return: np.array
+    """
+    return (amplitude / (np.pi * sigma)) * np.exp(-(1.0 * x - center) ** 2 / (2 * sigma ** 2))
