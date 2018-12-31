@@ -5,6 +5,8 @@
     that are often used in spectroscopy.
 """
 
+import json
+
 import numpy as np
 from scipy import constants
 

@@ -88,7 +88,7 @@ def upload_spectrum(uploaded_file, filename, data):
     # Since the same object is used to store both spectra and catalogs
     # we only want to update the spectrum
     data = data or {"spectrum": {}, "catalogs": {}}
-    data["spectrum"]["x"] = spec_obj.df["Frequency (MHz)"]
+    data["spectrum"] = spec_obj.__dict__
     return data
 
 
@@ -103,7 +103,8 @@ def update_plot(data):
     :param data: dict from the hidden div Store
     :return: dict with plot specifications
     """
-    spectrum = data["spectrum"].create_plot()
+    spec_obj = classes.Spectrum(**data["spectrum"])
+    spectrum = spec_obj.create_plot()
     plot_data = {
         "data": [spectrum],
         "layout": plotting.init_layout()

@@ -15,7 +15,8 @@ from spectron3000 import utils
 
 @dataclass
 class Spectrum:
-    df: pd.DataFrame
+    x: np.array
+    y: np.array
     comment: str = "Observation"
 
     @classmethod
@@ -32,7 +33,9 @@ class Spectrum:
             io.StringIO(decoded.decode("utf-8")),
             sep="\t"
         )
-        spec_obj = cls(df, os.path.basename(filename))
+        x = df[df.columns[0]]
+        y = df[df.columns[1]]
+        spec_obj = cls(x, y, os.path.basename(filename))
         return spec_obj
 
     def create_plot(self):
@@ -41,8 +44,8 @@ class Spectrum:
         :return: Scatter object
         """
         trace = go.Scatter(
-            x=self.frequency,
-            y=self.intensity,
+            x=self.x,
+            y=self.y,
             name=self.comment,
             opacity=0.7
         )
