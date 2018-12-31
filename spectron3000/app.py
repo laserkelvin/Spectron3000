@@ -121,9 +121,11 @@ def update_figure(data, table_data):
                     cat for cat in table_data if cat.get("molecule") == cat_data["molecule"]
                 ][0]
                 cat_data.update(table_dict)
-            cat_data["frequency"] = np.array(cat_data["frequency"])
-            cat_data["intensity"] = np.array(cat_data["intensity"])
-            cat_data["state_energies"] = np.array(cat_data["state_energies"])
+            # This part is stupid because typing is enforced...
+            for col in ["frequency", "intensity", "state_energies"]:
+                cat_data[col] = np.array(cat_data[col])
+            for col in ["temperature", "column_density", "doppler"]:
+                cat_data[col] = np.float(cat_data[col])
             cat_obj = classes.Catalog(**cat_data)
             sim_y = cat_obj.generate_spectrum(
                 spec_obj.x
