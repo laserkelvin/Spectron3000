@@ -22,7 +22,7 @@ def init_layout():
 
 
 def plot_spectrum(x, y, name, **kwargs):
-    trace = go.Scatter(
+    trace = go.Scattergl(
         x=x,
         y=y,
         name=name,
