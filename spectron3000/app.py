@@ -1,4 +1,5 @@
 
+import numpy as np
 import dash
 from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
@@ -22,11 +23,11 @@ app.layout = html.Div(
                 dcc.Upload(
                     id='upload-data',
                     children=html.Div([
-                        'Spectrum File - Drag and Drop or ',
+                        "Drag and Drop or ",
                         html.A('Select Files')
                     ]),
                     style={
-                        'width': '100%',
+                        'width': '98%',
                         'height': '60px',
                         'lineHeight': '60px',
                         'borderWidth': '1px',
@@ -51,7 +52,6 @@ app.layout = html.Div(
                     "molecule", "temperature", "column_density", "doppler"
                 ]
             ],
-            data=[{}],
             id='catalog-table'
         ),
     ]
@@ -62,7 +62,7 @@ app.layout = html.Div(
               [Input("upload-data", "contents"), Input("upload-data", "filename")],
               [State("stored-data", "data")]
               )
-def upload_catalog(uploaded_files, filenames, data):
+def upload_file(uploaded_files, filenames, data):
     """
     This creates a callback function for when a user uploads one or multiple catalog files.
     The data is stored in a hidden Dash div (`Store` object), which holds
@@ -89,9 +89,12 @@ def upload_catalog(uploaded_files, filenames, data):
 
 
 @app.callback(Output("main-graph", "figure"),
-              [Input("stored-data", "data")]
+              [
+                  Input("stored-data", "data"),
+                  Input("catalog-table", "derived_virtual_data"),
+              ]
               )
-def update_figure(data):
+def update_figure(data, table_data):
     """
     This callback is set up to track the hidden div data. When something
     changes from the user uploading a spectrum or catalog file, the main
@@ -100,6 +103,8 @@ def update_figure(data):
     :return: dict with plot specifications
     """
     plots = list()
+    if data is None:
+        raise PreventUpdate
     spec_obj = classes.Spectrum(**data["spectrum"])
     # Create a Plotly Scatter trace
     plots.append(
@@ -111,6 +116,14 @@ def update_figure(data):
     )
     if len(data["catalogs"]) > 0:
         for molecule, cat_data in data["catalogs"].items():
+            if table_data:
+                table_dict = [
+                    cat for cat in table_data if cat.get("molecule") == cat_data["molecule"]
+                ][0]
+                cat_data.update(table_dict)
+            cat_data["frequency"] = np.array(cat_data["frequency"])
+            cat_data["intensity"] = np.array(cat_data["intensity"])
+            cat_data["state_energies"] = np.array(cat_data["state_energies"])
             cat_obj = classes.Catalog(**cat_data)
             sim_y = cat_obj.generate_spectrum(
                 spec_obj.x

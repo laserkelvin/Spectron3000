@@ -67,10 +67,12 @@ class Spectrum:
 class Catalog:
     frequency: np.array
     intensity: np.array
+    state_energies: np.array
     molecule: str
     temperature: float = 300.0
     column_density: float = 1e15
     doppler: float = 5.0
+    Q: float = 1.0
 
     @classmethod
     def from_upload(cls, contents, filename):
@@ -107,10 +109,13 @@ class Catalog:
             "F''",
             "J''"
         ]
+        df["Upper state"] = utils.MHz2cm(df["Frequency"]) + df["Lower state energy"]
+        df["Upper state Kelvin"] = df["Upper state"] / utils.kbcm
         pack = {
             "frequency": df["Frequency"].astype(float),
             "intensity": 10**df["Intensity"].astype(float),
-            "molecule": os.path.basename(filename)
+            "molecule": os.path.basename(filename).split(".")[0],
+            "state_energies": df["Upper state Kelvin"].astype(float)
         }
         cat_obj = cls(**pack)
         return cat_obj
@@ -126,13 +131,26 @@ class Catalog:
         model = GaussianModel()
         spec_y = np.zeros(len(spec_x))
         spec_x = np.array(spec_x)
-        for x, y in zip(self.frequency, self.intensity):
-            dopp_freq = utils.dop2freq(self.doppler, x)
+        self.Q = utils.partition_function(self.state_energies, self.temperature)
+        self.column_density = float(self.column_density)
+        I = utils.I2S(self.intensity, self.Q, self.frequency, self.state_energies, self.temperature)
+        flux = utils.N2flux(
+            self.column_density,
+            I,
+            self.frequency,
+            self.Q,
+            self.state_energies,
+            self.temperature
+        )
+        dopp_freq = utils.dop2freq(self.doppler, self.frequency)
+        amplitudes = flux / np.sqrt(2. * np.pi**2. * dopp_freq)
+        # Frequency, doppler shift in frequency, amplitude
+        for c, w, a in zip(self.frequency, dopp_freq, amplitudes):
             spec_y += model.eval(
                 x=spec_x,
-                center=x,
-                sigma=dopp_freq,
-                amplitude=y * np.sqrt(2. * np.pi) * utils.dop2freq(self.doppler, x)
+                center=c,
+                sigma=w,
+                amplitude=a
             )
         return spec_y
 
@@ -141,7 +159,7 @@ class Catalog:
         Puts the catalog data into DataTable format.
         :return: dict corresponding to everything in the class except the catalog lines
         """
-        ignore = ["frequency", "intensity"]
+        ignore = ["frequency", "intensity", "state_energies"]
         data = {key: value for key, value in self.__dict__.items() if key not in ignore}
         return data
 

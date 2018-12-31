@@ -37,6 +37,17 @@ def rotcon2pmi(rotational_constant):
     return 1 / (rotational_constant / 134.901)
 
 
+def partition_function(state_energies, temperature):
+    """
+    Calculate the partition function for a set of state energies and a given
+    temperature.
+    :param state_energies: np.array of upper state energies
+    :param temperature: float value for temperature in K
+    :return: partition function
+    """
+    return np.sum(boltzmann_factor(state_energies * kbcm, temperature))
+
+
 def inertial_defect(rotational_constants):
     """ Calculates the inertial defect, given three
         rotational constants in MHz. The ordering does not
@@ -200,3 +211,50 @@ def gaussian_integral(amplitude, sigma):
     """
     integral = amplitude * np.sqrt(2. * np.pi**2. * sigma)
     return integral
+
+
+def N2flux(N, S, v, Q, E, T):
+    """
+    Calculate the expected flux in Jy for a given set of parameters.
+    :param N: column density in cm^-2
+    :param S: intrinsic line strength; Su^2
+    :param v: transition frequency in MHz
+    :param Q: rotational partition function
+    :param E: upper state energy
+    :param T: temperature
+    :return: integrated flux in Jy
+    """
+    numerator = (N * S * (v / 1e3)**3.) / 1e20
+    denominator = 2.04 * Q * np.exp(E / T)
+    flux = numerator / denominator
+    return flux
+
+
+def boltzmann_factor(E, T):
+    """
+    Calculate the Boltzmann weight for a given state energy and
+    temperature.
+    :param E: state energy in 1/cm
+    :param T: temperature in K
+    :return: float Boltzmann factor
+    """
+    return np.exp(-E / (kbcm * T))
+
+
+def I2S(I, Q, frequency, E_upper, T):
+    """
+    Calculate the intrinsic line strength for a given transition frequency
+    and intensity, and thermodynamic quantities like state energy, temperature,
+    and partition function.
+    :param I: transition intensity in nm^2 MHz
+    :param Q: partition function
+    :param frequency: transition frequency in MHz
+    :param E_upper: upper state energy in K
+    :param T: temperature in K
+    :return: intrinsic line strength; Su^2
+    """
+    E_upper = E_upper * kbcm
+    E_lower = MHz2cm(cm2MHz(E_upper) - frequency)
+    A = I * Q
+    B = (4.16231e-5 * frequency * (boltzmann_factor(E_lower, T) - boltzmann_factor(E_upper, T)))
+    return A / B

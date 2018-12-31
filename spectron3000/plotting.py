@@ -5,11 +5,11 @@ from plotly import graph_objs as go
 def init_layout():
     layout = {
         "xaxis": {
-            "title": "Frequency",
+            "title": "Frequency (MHz)",
             "tickformat": ".,"
         },
         "yaxis": {
-            "title": "Intensity",
+            "title": "Flux (Jy/beam)",
             "tickformat": ".,"
         },
         "hovermode": "closest",
@@ -21,10 +21,11 @@ def init_layout():
     return layout
 
 
-def plot_spectrum(x, y, name):
+def plot_spectrum(x, y, name, **kwargs):
     trace = go.Scatter(
         x=x,
         y=y,
-        name=name
+        name=name,
+        **kwargs
     )
     return trace
