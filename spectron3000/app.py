@@ -17,7 +17,6 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
     [
         dcc.Store(id="stored-data", storage_type="session"),
-        dcc.Store(id="plot-data", storage_type="session"),
         html.Div(
             [
                 dcc.Upload(
@@ -27,7 +26,7 @@ app.layout = html.Div(
                         html.A('Select Files')
                     ]),
                     style={
-                        'width': '48%',
+                        'width': '100%',
                         'height': '60px',
                         'lineHeight': '60px',
                         'borderWidth': '1px',
@@ -36,27 +35,9 @@ app.layout = html.Div(
                         'textAlign': 'center',
                         'margin': '10px'
                     },
-                    className="six columns"
-                ),
-                dcc.Upload(
-                    id='upload-catalog',
-                    children=html.Div([
-                        'Catalog Files - Drag and Drop or ',
-                        html.A('Select Files')
-                    ]),
-                    style={
-                        'width': '48%',
-                        'height': '60px',
-                        'lineHeight': '60px',
-                        'borderWidth': '1px',
-                        'borderStyle': 'dashed',
-                        'borderRadius': '5px',
-                        'textAlign': 'center',
-                        'margin': '10px'
-                    },
-                    multiple=True,
-                    className="six columns"
-                ),
+                    className="six columns",
+                    multiple=True
+                )
             ],
             className="row"
         ),
@@ -76,31 +57,6 @@ app.layout = html.Div(
               [Input("upload-data", "contents"), Input("upload-data", "filename")],
               [State("stored-data", "data")]
               )
-def upload_spectrum(uploaded_file, filename, data):
-    """
-    This creates a callback function for when a user uploads a spectrum.
-    The data is stored in a hidden Dash div (`Store` object), which holds
-    a dictionary that separates a spectrum from catalog files.
-    :param uploaded_file: file stream from Dash `Upload`
-    :param filename: str uploaded file name
-    :param data: dict containing spectrum and catalog data
-    :return: instance of `Spectrum` object
-    """
-    # Only update if a file is actually uploaded
-    if uploaded_file is None:
-        raise PreventUpdate
-    spec_obj = classes.Spectrum.from_upload(uploaded_file, filename)
-    # Since the same object is used to store both spectra and catalogs
-    # we only want to update the spectrum
-    data = data or {"spectrum": {}, "catalogs": {}}
-    data["spectrum"] = spec_obj.__dict__
-    return data
-
-
-@app.callback(Output("stored-data", "data"),
-              [Input("upload-catalog", "contents"), Input("upload-catalog", "filename")],
-              [State("stored-data", "data")]
-              )
 def upload_catalog(uploaded_files, filenames, data):
     """
     This creates a callback function for when a user uploads one or multiple catalog files.
@@ -112,16 +68,18 @@ def upload_catalog(uploaded_files, filenames, data):
     :return: updated dictionary of data
     """
     # Only update if a file is actually uploaded
-    if uploaded_file is None:
+    if uploaded_files is None:
         raise PreventUpdate
-    catalog_dict = {}
-    for uploaded_file, filename in zip(uploaded_files, filenames):
-        cat_obj = classes.Catalog.from_upload(uploaded_file, filename)
-        catalog_dict[cat_obj.molecule] = cat_obj.__dict__
-    # Since the same object is used to store both spectra and catalogs
-    # we only want to update the spectrum
+    # In case there's no data yet, initialize with empty dicts
     data = data or {"spectrum": {}, "catalogs": {}}
-    data["catalogs"].update(catalog_dict)
+    for uploaded_file, filename in zip(uploaded_files, filenames):
+        # Check filename extension to determine which bin the data goes into
+        upload_obj = classes.process_upload(uploaded_file, filename)
+        # If the uploaded object returns a Spectrum, then assign it to spectrum
+        if type(upload_obj) == classes.Spectrum:
+            data["spectrum"] = upload_obj.__dict__
+        else:
+            data["catalogs"][upload_obj.molecule] = upload_obj.__dict__
     return data
 
 

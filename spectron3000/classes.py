@@ -37,8 +37,8 @@ class Spectrum:
             io.StringIO(decoded.decode("utf-8")),
             sep="\t"
         )
-        x = df[df.columns[0]]
-        y = df[df.columns[1]]
+        x = df[df.columns[0]].values
+        y = df[df.columns[1]].values
         spec_obj = cls(x, y, os.path.basename(filename))
         return spec_obj
 
@@ -94,6 +94,7 @@ class Catalog:
         df.columns = [
             "Frequency",
             "Uncertainty",
+            "Intensity",
             "DoF",
             "Lower state energy",
             "Degeneracy",
@@ -107,8 +108,8 @@ class Catalog:
             "J''"
         ]
         pack = {
-            "frequency": df["Frequency"].values,
-            "intensity": 10**df["Intensity"].values,
+            "frequency": df["Frequency"].astype(float),
+            "intensity": 10**df["Intensity"].astype(float),
             "molecule": os.path.basename(filename)
         }
         cat_obj = cls(**pack)
@@ -123,13 +124,16 @@ class Catalog:
         :return: np.array containing y values
         """
         model = GaussianModel()
-        params = model.make_params()
         spec_y = np.zeros(len(spec_x))
+        spec_x = np.array(spec_x)
         for x, y in zip(self.frequency, self.intensity):
-            params["center"] = x
-            params["amplitude"] = (10**y) * (np.sqrt(2. * np.pi) * utils.dop2freq(self.width, x))
-            params["sigma"] = utils.dop2freq(self.width, x)
-            spec_y+=model.eval(params=params, x=spec_x)
+            dopp_freq = utils.dop2freq(self.width, x)
+            spec_y += model.eval(
+                x=spec_x,
+                center=x,
+                sigma=dopp_freq,
+                amplitude=y * np.sqrt(2. * np.pi) * utils.dop2freq(self.width, x)
+            )
         return spec_y
 
     def to_table_format(self):
@@ -140,3 +144,13 @@ class Catalog:
         ignore = ["frequency", "intensity"]
         data = {key: value for key, value in self.__dict__.values() if key not in ignore}
         return data
+
+
+def process_upload(filestream, filename):
+    spec_ext = [".txt", ".spec", ".csv"]
+    cat_ext = [".lin", ".cat"]
+    if any(ext in filename for ext in spec_ext) is True:
+        parser = Spectrum.from_upload
+    elif any(ext in filename for ext in cat_ext) is True:
+        parser = Catalog.from_upload
+    return parser(filestream, filename)
