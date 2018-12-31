@@ -10,7 +10,7 @@ import pandas as pd
 from plotly import graph_objs as go
 from lmfit.models import GaussianModel
 
-from . import utils
+from spectron3000 import utils
 
 
 @dataclass
@@ -29,7 +29,8 @@ class Spectrum:
         content_type, content_string = contents.split(",")
         decoded = base64.b64decode(content_string)
         df = pd.read_csv(
-            io.StringIO(decoded.decode("utf-8"))
+            io.StringIO(decoded.decode("utf-8")),
+            sep="\t"
         )
         spec_obj = cls(df, os.path.basename(filename))
         return spec_obj
