@@ -46,7 +46,12 @@ app.layout = html.Div(
         html.H4("Catalog Table", style={"text-align": "center"}),
         dt.DataTable(
             editable=True,
-            columns=["Molecule", "Temperature (K)", "Column Density (cm^-2)", "Doppler (km/s)"],
+            columns=[
+                {"name": value, "id": value} for value in [
+                    "molecule", "temperature", "column_density", "doppler"
+                ]
+            ],
+            data=[{}],
             id='catalog-table'
         ),
     ]
@@ -140,6 +145,7 @@ def update_table(data):
     cat_objs = [classes.Catalog(**catalog) for catalog in data["catalogs"].values()]
     table_data = [cat_obj.to_table_format() for cat_obj in cat_objs]
     return table_data
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

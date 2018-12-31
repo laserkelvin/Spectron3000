@@ -69,8 +69,8 @@ class Catalog:
     intensity: np.array
     molecule: str
     temperature: float = 300.0
-    density: float = 1e15
-    width: float = 5.0
+    column_density: float = 1e15
+    doppler: float = 5.0
 
     @classmethod
     def from_upload(cls, contents, filename):
@@ -127,12 +127,12 @@ class Catalog:
         spec_y = np.zeros(len(spec_x))
         spec_x = np.array(spec_x)
         for x, y in zip(self.frequency, self.intensity):
-            dopp_freq = utils.dop2freq(self.width, x)
+            dopp_freq = utils.dop2freq(self.doppler, x)
             spec_y += model.eval(
                 x=spec_x,
                 center=x,
                 sigma=dopp_freq,
-                amplitude=y * np.sqrt(2. * np.pi) * utils.dop2freq(self.width, x)
+                amplitude=y * np.sqrt(2. * np.pi) * utils.dop2freq(self.doppler, x)
             )
         return spec_y
 
@@ -142,7 +142,7 @@ class Catalog:
         :return: dict corresponding to everything in the class except the catalog lines
         """
         ignore = ["frequency", "intensity"]
-        data = {key: value for key, value in self.__dict__.values() if key not in ignore}
+        data = {key: value for key, value in self.__dict__.items() if key not in ignore}
         return data
 
 
