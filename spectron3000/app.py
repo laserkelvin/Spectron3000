@@ -111,7 +111,8 @@ def update_figure(data, table_data):
         plotting.plot_spectrum(
             spec_obj.x,
             spec_obj.y,
-            spec_obj.comment
+            spec_obj.comment,
+            **{"opacity": 0.7}
         )
     )
     if len(data["catalogs"]) > 0:
