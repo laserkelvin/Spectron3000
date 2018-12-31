@@ -41,19 +41,6 @@ class Spectrum:
         spec_obj = cls(x, y, os.path.basename(filename))
         return spec_obj
 
-    def create_plot(self):
-        """
-        Create a Plotly scatter trace for visualization.
-        :return: Scatter object
-        """
-        trace = go.Scatter(
-            x=self.x,
-            y=self.y,
-            name=self.comment,
-            opacity=0.7
-        )
-        return trace
-
     def save_table(self, filepath):
         if hasattr(self, "table"):
             self.table.to_csv(
@@ -157,6 +144,14 @@ class Catalog:
 
 
 def process_upload(filestream, filename):
+    """
+    Function for processing a file upload. Determines the kind
+    of file by looking at the filename extension, and then
+    uses the corresponding parser.
+    :param filestream: file IO stream from the upload form
+    :param filename: str filename
+    :return: object instance corresponding to the filetype
+    """
     spec_ext = [".txt", ".spec", ".csv"]
     cat_ext = [".lin", ".cat"]
     if any(ext in filename for ext in spec_ext) is True:

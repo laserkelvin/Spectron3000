@@ -100,6 +100,7 @@ def update_figure(data, table_data):
     changes from the user uploading a spectrum or catalog file, the main
     graph is updated with the latest data.
     :param data: dict from the hidden div Store
+    :param table_data: list of dicts from the DataTable
     :return: dict with plot specifications
     """
     plots = list()
@@ -164,4 +165,5 @@ def update_table(data):
 
 
 if __name__ == '__main__':
+    app.title = "Spectron3000"
     app.run_server(debug=True)
