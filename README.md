@@ -12,6 +12,8 @@ data input. Spectra should be supplied with tab-delimiting, with frequency
 in MHz and intensities in Jy/beam. Reference spectra must be in the SPCAT
 format.
 
+![screenshot](live.png)
+
 ### What it does
 
 Spectron3000 uses Plotly to render spectra in your web browser. Catalog

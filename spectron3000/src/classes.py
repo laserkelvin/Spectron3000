@@ -7,9 +7,8 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from plotly import graph_objs as go
 
-from spectron3000 import utils
+from src import utils
 
 
 @dataclass

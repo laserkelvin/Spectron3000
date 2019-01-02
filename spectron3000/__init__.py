@@ -1,3 +1,1 @@
-from . import classes
-from . import plotting
-from . import utils
+from spectron3000.src import classes, utils

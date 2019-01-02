@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-./venv/bin/python ./spectron3000/app.py
+source venv/bin/activate
+
+cd ./spectron3000/
+python app.py

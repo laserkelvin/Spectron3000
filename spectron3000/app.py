@@ -7,8 +7,8 @@ import dash_html_components as html
 import dash_table as dt
 from dash.exceptions import PreventUpdate
 
-from spectron3000 import classes
-from spectron3000 import plotting
+from src import classes
+from src import plotting
 
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
