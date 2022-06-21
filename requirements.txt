@@ -19,7 +19,7 @@ jupyter-core==4.4.0
 lmfit==0.9.12
 MarkupSafe==1.1.0
 nbformat==4.4.0
-numpy==1.15.4
+numpy==1.22.0
 pandas==0.23.4
 plotly==3.4.2
 python-dateutil==2.7.5
